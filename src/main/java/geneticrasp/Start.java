@@ -1,5 +1,6 @@
 package geneticrasp;
 
+import java.sql.*;
 import java.util.*;
 
 public class Start {
@@ -19,9 +20,7 @@ public class Start {
 
     private int time = 0;
     private int timeMax = 10000;
-    public static void main(String[] args){
 
-    }
     public void Start(String[] groups, String[] auditors, String[] disciplins, String[] prepods, String[] times, String[] types, String[] days) {
 
         this.groups = groups;
