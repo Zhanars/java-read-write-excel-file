@@ -1,10 +1,22 @@
+import org.ini4j.Wini;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Properties;
 
 public class app {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // Create a variable for the connection string.
-        String connectionUrl = "jdbc:sqlserver://univer.atu.kz;databaseName=atu_univer;user=joker;password=Univer2019#@";
+
+        Wini ini = new Wini(new File("D:\\Javaproject\\java-read-write-excel-file\\src\\main\\resources\\config.ini"));
+        String server = ini.get("database", "server");
+        String dbname = ini.get("database", "dbname");
+        String username = ini.get("database", "username");
+        String password = ini.get("database", "password");
+        String connectionUrl = "jdbc:sqlserver://" + server + ";databaseName=" + dbname + ";user=" + username + ";password=" + password;
         try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
             String SQL = "SELECT [schedule_time_id]" +
                     "      ,[schedule_time_begin]" +
