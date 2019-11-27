@@ -3,31 +3,33 @@ package geneticrasp;
 //особь в генетическом алгоритме
 public class GeneticPerson implements Comparable //для сортировки
 {
-    public int group; //группа
-    public int discipl; //дисциплина
-    public int type; //тип дисциплины
+    public int group_id; //группа
+    public int subject_id; //дисциплина
+    public int educ_type_id; //тип дисциплины
+    public int teacher_id; //преподаватель
+    public int faculty_id; //факультет
+    public int studcount; //кол-во студентов
 
     public int auditor; //аудитория
-    public int prepod; //преподаватель
     public int time; //время
     public int day; //день
 
-    public float x; //координаты для вывода графа
-    public float y;
 
-    public GeneticPerson(int group, int discipl, int type)
+    public GeneticPerson(int group_id, int subject_id, int educ_type_id, int teacher_id, int faculty_id, int studcount)
     {
-        this.group = group;
-        this.discipl = discipl;
-        this.type = type;
+        this.group_id = group_id;
+        this.subject_id = subject_id;
+        this.educ_type_id = educ_type_id;
+        this.teacher_id = teacher_id;
+        this.faculty_id = faculty_id;
+        this.studcount = studcount;
     }
 
     //копирование особи
     public final GeneticPerson clone()
     {
-        GeneticPerson gp = new GeneticPerson(group, discipl, type);
+        GeneticPerson gp = new GeneticPerson(group_id, subject_id, educ_type_id, teacher_id, faculty_id, studcount);
         gp.auditor = auditor;
-        gp.prepod = prepod;
         gp.time = time;
         gp.day = day;
 

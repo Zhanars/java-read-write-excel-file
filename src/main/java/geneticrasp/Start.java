@@ -1,17 +1,22 @@
 package geneticrasp;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
 public class Start {
     //критерии
-    private String[] groups;
-    private String[] auditors;
-    private String[] disciplins;
-    private String[] prepods;
+    private GeneticRooms[] auditors;
     private String[] times;
-    private String[] types;
     private String[] days;
+    private int[] teachers;
+
+    private String[] columns = {"Group_id", "Auditor_id", "day", "time"};
     private float minFitn = -1; //лучшее здоровье
 
     private GeneticPerson[] persons; //расписание
@@ -21,47 +26,20 @@ public class Start {
     private int time = 0;
     private int timeMax = 10000;
 
-    public void Start(String[] groups, String[] auditors, String[] disciplins, String[] prepods, String[] times, String[] types, String[] days) {
+    public Start(GeneticPerson[] groups, int[] teachers, String[] timesfromuniver, GeneticRooms[] auditorsfromuniver)throws SQLException {
+        this.times = timesfromuniver;
+        this.days = new String []{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+        this.persons = groups;
+        this.teachers = teachers;
+        this.auditors = auditorsfromuniver;
 
-        this.groups = groups;
-        this.auditors = auditors;
-        this.disciplins = disciplins;
-        this.prepods = prepods;
-        this.times = times;
-        this.types = types;
-        this.days = days;
 
         rand = new Random();
-
-        //количество занятий
-        int num = groups.length * disciplins.length * types.length;
-
-        //создаем расписание
-        persons = new GeneticPerson[num];
-        int n = 0;
-
-        //int radius = panel1.Height / 2 - 40;   //радиус круга графа
-        double ang = Math.PI * 2 / num;
-
-        //создаем занятия
-        for (int i = 0; i < groups.length; i++) {
-            for (int j = 0; j < disciplins.length; j++) {
-                for (int k = 0; k < types.length; k++) {
-                    persons[n] = new GeneticPerson(i, j, k);
-
-                    persons[n].x = (float) Math.cos(n * ang);
-                    persons[n].y = (float) Math.sin(n * ang);
-
-                    //заполняем случайными значениями
-                    persons[n].auditor = rand.nextInt(auditors.length);
-                    persons[n].prepod = rand.nextInt(prepods.length);
-                    persons[n].time = rand.nextInt(times.length);
-                    persons[n].day = rand.nextInt(days.length);
-
-                    n++;
-
-                }
-            }
+        for (int j = 0; j < persons.length; j++){
+            //заполняем случайными значениями
+            persons[j].auditor = getauditorforgroup(j);
+            persons[j].time = rand.nextInt(times.length);
+            persons[j].day = rand.nextInt(days.length);
         }
 
         //вызываем функцию составления расписания, которая выбирает подходящее время и аудитории для занятий из расписания
@@ -74,8 +52,12 @@ public class Start {
 
         myThread.start(); //запускаем поток
 
+        System.out.println("finished");
+        Excelwriter();
+        System.exit(0);
         // doColor();
     }
+
 
     //генетический алгоритм
     private void doColor() {
@@ -94,11 +76,17 @@ public class Start {
             GeneticPerson[] pers = new GeneticPerson[persons.length];
             for (int j = 0; j < persons.length; j++) {
                 //неизменные критерии берем из стартовой заготовки расписания
-                pers[j] = new GeneticPerson(persons[j].group, persons[j].discipl, persons[j].type);
-                pers[j].prepod = persons[j].prepod;
+                pers[j] = new GeneticPerson(
+                        persons[j].group_id,
+                        persons[j].subject_id,
+                        persons[j].educ_type_id,
+                        persons[j].teacher_id,
+                        persons[j].faculty_id,
+                        persons[j].studcount
+                );
 
                 //остальные критерии генерируем случайным образом
-                pers[j].auditor = rand.nextInt(auditors.length);
+                pers[j].auditor = getauditorforgroup(j);
                 pers[j].time = rand.nextInt(times.length);
                 pers[j].day = rand.nextInt(days.length);
             }
@@ -163,7 +151,7 @@ public class Start {
 
                     //мутация
                     if (rand.nextInt(5) == 0) {
-                        child[j].auditor = rand.nextInt(auditors.length);
+                        child[j].auditor = getauditorforgroup(j);
                         child[j].time = rand.nextInt(times.length);
                         child[j].day = rand.nextInt(days.length);
                     }
@@ -224,14 +212,14 @@ public class Start {
                     continue;
                 }
 
-                if (personColors[i].time == personColors[j].time && personColors[i].day == personColors[j].day && (personColors[i].prepod == personColors[j].prepod || personColors[i].auditor == personColors[j].auditor || personColors[i].group == personColors[j].group)) {
+                if (personColors[i].time == personColors[j].time && personColors[i].day == personColors[j].day && (personColors[i].teacher_id == personColors[j].teacher_id || personColors[i].auditor == personColors[j].auditor || personColors[i].group_id == personColors[j].group_id)) {
 
                     //если совпадают
-                    if (personColors[i].prepod == personColors[j].prepod) {
+                    if (personColors[i].teacher_id == personColors[j].teacher_id) {
                         result += 100; //уменьшаем здоровье
                     }
 
-                    if (personColors[i].group == personColors[j].group) {
+                    if (personColors[i].group_id == personColors[j].group_id) {
                         result += 100; //уменьшаем здоровье
                     }
 
@@ -247,7 +235,7 @@ public class Start {
         Arrays.sort(personColorsSortTime); //сортируем по возрастанию времени
 
         //проверка окон у преподавателей
-        for (int i = 0; i < prepods.length; i++) {
+        for (int i = 0; i < teachers.length; i++) {
             int state = 0;
             int time = -1;
             int day = -1;
@@ -261,7 +249,7 @@ public class Start {
                 }
 
                 //если нужный преподаватель
-                if (personColorsSortTime[j].prepod == i) {
+                if (personColorsSortTime[j].teacher_id == teachers[i]) {
                     //еще не было пары
                     if (state == 0) {
                         state = 1;
@@ -284,8 +272,8 @@ public class Start {
         }
 
 
-        //проверка окон у групп
-        for (int i = 0; i < groups.length; i++) {
+/*        //проверка окон у групп
+        for (int i = 0; i < group_id.length; i++) {
             int state = 0;
             int time = -1;
             int day = -1;
@@ -318,7 +306,7 @@ public class Start {
                     }
                 }
             }
-        }
+        }*/
 
 
         //разные аудитории у групп
@@ -353,7 +341,7 @@ public class Start {
             }
         }
 
-        //одинакого среднее количество занятий для группы
+        /*//одинакого среднее количество занятий для группы
         for (int i = 0; i < groups.length; i++) {
             //создаем массив с количеством пар по дням
             int[] lessonsInDay = new int[days.length];
@@ -381,10 +369,83 @@ public class Start {
                 }
             }
 
-        }
+        }*/
 
 
         return result;
+    }
+    public int getauditorforgroup(int id){
+        int result;
+        rand = new Random();
+        /*do {
+            result = rand.nextInt(auditors.length);
+        }while((persons[id].educ_type_id != auditors[result].audience_type_id) ||
+                (persons[id].faculty_id != auditors[result].faculty_id) ||
+                (persons[id].studcount > auditors[result].audience_size));*/
+
+        result = rand.nextInt(auditors.length);
+        return result;
+    }
+    public void Excelwriter(){
+        // Create a Workbook
+        Workbook workbook = new XSSFWorkbook();     // new HSSFWorkbook() for generating `.xls` file
+
+        /* CreationHelper helps us create instances for various things like DataFormat,
+           Hyperlink, RichTextString etc in a format (HSSF, XSSF) independent way */
+        CreationHelper createHelper = workbook.getCreationHelper();
+
+        // Create a Sheet
+        Sheet sheet = workbook.createSheet("Schedule");
+
+        // Create a Font for styling header cells
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerFont.setFontHeightInPoints((short) 14);
+        headerFont.setColor(IndexedColors.RED.getIndex());
+
+        // Create a CellStyle with the font
+        CellStyle headerCellStyle = workbook.createCellStyle();
+        headerCellStyle.setFont(headerFont);
+
+        // Create a Row
+        Row headerRow = sheet.createRow(0);
+
+        // Creating cells
+        for(int i = 0; i < columns.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(columns[i]);
+            cell.setCellStyle(headerCellStyle);
+        }
+
+        // Create Other rows and cells with employees data
+        int rowNum = 1;
+
+        for (int j = 0; j < persons.length; j++) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(persons[j].group_id);
+            row.createCell(1).setCellValue(auditors[persons[j].auditor].audience_id);
+            row.createCell(2).setCellValue(days[persons[j].day]);
+            row.createCell(3).setCellValue(times[persons[j].day]);
+
+        }
+        // Resize all columns to fit the content size
+        for(int i = 0; i < columns.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Write the output to a file
+        FileOutputStream fileOut = null;
+        try {
+            fileOut = new FileOutputStream("poi-generated-file.xlsx");
+            workbook.write(fileOut);
+            fileOut.close();
+            workbook.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
 
