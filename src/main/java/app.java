@@ -24,7 +24,7 @@ public class app {
             String SQL = "SELECT [schedule_time_id]" +
                     "      ,[schedule_time_begin]" +
                     "      ,[schedule_time_end]" +
-                    "  FROM [atu_univer].[dbo].[univer_schedule_time] where status = 1 and schedule_time_type_id = 1 " +
+                    "  FROM [atu_univer].[dbo].[univer_schedule_time] where status = 1 and schedule_time_type_id = 1 and schedule_time_id < 7" +
                     "  order by schedule_time_begin";
             String SQL1 = "SELECT g.[group_id]" +
                     "      ,[educ_type_id]" +
