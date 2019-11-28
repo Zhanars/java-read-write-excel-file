@@ -26,20 +26,24 @@ public class app {
                     "      ,[schedule_time_end]" +
                     "  FROM [atu_univer].[dbo].[univer_schedule_time] where status = 1 and schedule_time_type_id = 1 and schedule_time_id < 7" +
                     "  order by schedule_time_begin";
-            String SQL1 = "SELECT g.[group_id]" +
+            String SQL1 = "SELECT  g.[group_id]" +
                     "      ,[educ_type_id]" +
                     "      ,[teacher_id]" +
                     "  ,eps.subject_id" +
-                    "  ,eps.faculty_id" +
-                    "  ,count(gs.student_id) as studcount" +
+                    "  ,sp.faculty_id" +
+                    "  ,count(gs.student_id) studcount" +
                     "  FROM [atu_univer].[dbo].[univer_group] g " +
                     "  join univer_educ_plan_pos eps on eps.educ_plan_pos_id = g.educ_plan_pos_id" +
                     "  join univer_group_student gs on gs.group_id = g.group_id" +
+                    "  join univer_educ_plan ep on ep.educ_plan_id = eps.educ_plan_id" +
+                    "  JOIN univer_speciality sp on sp.speciality_id = ep.speciality_id" +
+                    "   join univer_academ_calendar_pos acc on acc.educ_plan_id = eps.educ_plan_id and acc.acpos_semester = eps.educ_plan_pos_semestr" +
+                    "   where acc.control_id = 0 and (acc.acpos_date_start < GETDATE() and acc.acpos_date_end >GETDATE()) and sp.faculty_id < 5 and educ_type_id != 4 and educ_type_id!= 8 and educ_type_id!= 9 and educ_type_id!= 0" +
                     "  group by g.[group_id]" +
                     "      ,[educ_type_id]" +
                     "      ,[teacher_id]" +
-                    "  ,eps.subject_id" +
-                    "  ,eps.faculty_id" +
+                    " ,eps.subject_id" +
+                    "  ,sp.faculty_id" +
                     "  order by g.group_id desc";
             String SQL2 = "SELECT [audience_id]" +
                     "      ,[faculty_id]" +

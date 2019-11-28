@@ -15,8 +15,9 @@ public class Start {
     private String[] times;
     private String[] days;
     private int[] teachers;
+    GeneticPerson[] answer = null; //ответ, готовое расписание
 
-    private String[] columns = {"Group_id", "Auditor_id", "day", "time"};
+    private String[] columns = {"Group_id", "teachers", "Auditor_id", "day", "time"};
     private float minFitn = -1; //лучшее здоровье
 
     private GeneticPerson[] persons; //расписание
@@ -24,20 +25,19 @@ public class Start {
     private Random rand;
 
     private int time = 0;
-    private int timeMax = 10000;
+    private int timeMax = 1000000000;
 
-    public Start(GeneticPerson[] groups, int[] teachers, String[] timesfromuniver, GeneticRooms[] auditorsfromuniver)throws SQLException {
+    public Start(GeneticPerson[] groups, int[] teachers, String[] timesfromuniver, GeneticRooms[] auditorsfromuniver){
         this.times = timesfromuniver;
         this.days = new String []{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
         this.persons = groups;
         this.teachers = teachers;
         this.auditors = auditorsfromuniver;
 
-
         rand = new Random();
         for (int j = 0; j < persons.length; j++){
             //заполняем случайными значениями
-            persons[j].auditor = getauditorforgroup(j);
+            persons[j].auditor = getauditorforgroup(persons[j]);
             persons[j].time = rand.nextInt(times.length);
             persons[j].day = rand.nextInt(days.length);
         }
@@ -86,16 +86,15 @@ public class Start {
                 );
 
                 //остальные критерии генерируем случайным образом
-                pers[j].auditor = getauditorforgroup(j);
+                pers[j].auditor = getauditorforgroup(pers[j]);
                 pers[j].time = rand.nextInt(times.length);
                 pers[j].day = rand.nextInt(days.length);
             }
-
             personsList.add(pers);
         }
 
 
-        for (time = 0; time < timeMax; time++) //количество итераций, если решение не будет найдено
+        while (time > 0) //количество итераций, если решение не будет найдено
         {
             answer = null;
             int indMin = -1; //номер особи с лучшим здоровьем
@@ -151,7 +150,7 @@ public class Start {
 
                     //мутация
                     if (rand.nextInt(5) == 0) {
-                        child[j].auditor = getauditorforgroup(j);
+                        child[j].auditor = getauditorforgroup(child[j]);
                         child[j].time = rand.nextInt(times.length);
                         child[j].day = rand.nextInt(days.length);
                     }
@@ -198,32 +197,30 @@ public class Start {
 
     }
 
+
     //функция определяет здоровье особи
     //personColors - генотип
     private float fitness(GeneticPerson[] personColors) {
         float result = 0; //начальное здоровье
-
         //проходим по всем вершинам графа
         for (int i = 0; i < personColors.length; i++) {
-
             //проверяем всех соседей
             for (int j = 0; j < personColors.length; j++) {
                 if (i == j) {
                     continue;
                 }
 
-                if (personColors[i].time == personColors[j].time && personColors[i].day == personColors[j].day && (personColors[i].teacher_id == personColors[j].teacher_id || personColors[i].auditor == personColors[j].auditor || personColors[i].group_id == personColors[j].group_id)) {
-
+                if (personColors[i].time == personColors[j].time && personColors[i].day == personColors[j].day) {
                     //если совпадают
                     if (personColors[i].teacher_id == personColors[j].teacher_id) {
                         result += 100; //уменьшаем здоровье
                     }
-
-                    if (personColors[i].group_id == personColors[j].group_id) {
+                    //если совпадают
+                    if (personColors[i].auditor == personColors[j].auditor) {
                         result += 100; //уменьшаем здоровье
                     }
-
-                    if (personColors[i].auditor == personColors[j].auditor) {
+                    //если совпадают
+                    if (personColors[i].group_id == personColors[j].group_id) {
                         result += 100; //уменьшаем здоровье
                     }
                 }
@@ -234,7 +231,7 @@ public class Start {
         GeneticPerson[] personColorsSortTime = (GeneticPerson[]) personColors.clone();
         Arrays.sort(personColorsSortTime); //сортируем по возрастанию времени
 
-        //проверка окон у преподавателей
+        /*//проверка окон у преподавателей
         for (int i = 0; i < teachers.length; i++) {
             int state = 0;
             int time = -1;
@@ -269,7 +266,7 @@ public class Start {
                     }
                 }
             }
-        }
+        }*/
 
 
 /*        //проверка окон у групп
@@ -374,16 +371,43 @@ public class Start {
 
         return result;
     }
-    public int getauditorforgroup(int id){
-        int result;
-        rand = new Random();
-        /*do {
-            result = rand.nextInt(auditors.length);
-        }while((persons[id].educ_type_id != auditors[result].audience_type_id) ||
-                (persons[id].faculty_id != auditors[result].faculty_id) ||
-                (persons[id].studcount > auditors[result].audience_size));*/
 
-        result = rand.nextInt(auditors.length);
+    private int getauditorforgroup(GeneticPerson geneticPerson) {
+        int result, count = 0;
+        Map<Integer, Integer> arr = new HashMap<>();
+        rand = new Random();
+        for(int i = 0; i < auditors.length; i++){
+            if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
+                    (geneticPerson.faculty_id == auditors[i].faculty_id) &&
+                    (geneticPerson.studcount <= auditors[i].audience_size)){
+                arr.put(count, i);
+                count++;
+            }
+        }
+        System.out.println(count);
+        result = rand.nextInt(count);
+        return arr.get(result);
+    }
+
+    private int getaudiencetypeidchild(GeneticPerson geneticPerson) {
+        int result;
+        switch (geneticPerson.educ_type_id){
+            case 1:
+                result = 2;
+                break;
+            case 2:
+                result = 3;
+                break;
+            case 3:
+                result = 4;
+                break;
+            case 7:
+                result = 3;
+                break;
+            default:
+                result = 2;
+                break;
+        }
         return result;
     }
     public void Excelwriter(){
@@ -420,12 +444,13 @@ public class Start {
         // Create Other rows and cells with employees data
         int rowNum = 1;
 
-        for (int j = 0; j < persons.length; j++) {
+        for (int j = 0; j < answer.length; j++) {
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(persons[j].group_id);
-            row.createCell(1).setCellValue(auditors[persons[j].auditor].audience_id);
-            row.createCell(2).setCellValue(days[persons[j].day]);
-            row.createCell(3).setCellValue(times[persons[j].day]);
+            row.createCell(0).setCellValue(answer[j].group_id);
+            row.createCell(1).setCellValue(answer[j].teacher_id);
+            row.createCell(2).setCellValue(auditors[answer[j].auditor].audience_id);
+            row.createCell(3).setCellValue(days[answer[j].day]);
+            row.createCell(4).setCellValue(times[answer[j].time]);
 
         }
         // Resize all columns to fit the content size
