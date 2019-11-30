@@ -9,13 +9,14 @@ public class GeneticPerson implements Comparable //для сортировки
     public int teacher_id; //преподаватель
     public int faculty_id; //факультет
     public int studcount; //кол-во студентов
+    public int educ_plan_pos_credit; //кол-во студентов
 
     public int auditor; //аудитория
     public int time; //время
     public int day; //день
 
 
-    public GeneticPerson(int group_id, int subject_id, int educ_type_id, int teacher_id, int faculty_id, int studcount)
+    public GeneticPerson(int group_id, int subject_id, int educ_type_id, int teacher_id, int faculty_id, int studcount, int educ_plan_pos_credit)
     {
         this.group_id = group_id;
         this.subject_id = subject_id;
@@ -23,12 +24,13 @@ public class GeneticPerson implements Comparable //для сортировки
         this.teacher_id = teacher_id;
         this.faculty_id = faculty_id;
         this.studcount = studcount;
+        this.educ_plan_pos_credit = educ_plan_pos_credit;
     }
 
     //копирование особи
     public final GeneticPerson clone()
     {
-        GeneticPerson gp = new GeneticPerson(group_id, subject_id, educ_type_id, teacher_id, faculty_id, studcount);
+        GeneticPerson gp = new GeneticPerson(group_id, subject_id, educ_type_id, teacher_id, faculty_id, studcount, educ_plan_pos_credit);
         gp.auditor = auditor;
         gp.time = time;
         gp.day = day;

@@ -14,26 +14,31 @@ public class Start {
     private GeneticRooms[] auditors;
     private String[] times;
     private String[] days;
+    private int[][] roomsCount;
+    private int[][] groupsCount;
     private int[] teachers;
-    GeneticPerson[] answer = null; //ответ, готовое расписание
 
-    private String[] columns = {"Group_id", "teachers", "Auditor_id", "day", "time"};
-    private float minFitn = -1; //лучшее здоровье
+    private String[] columns = {"group_id", "teachers", "auditor_id", "day", "time"};
 
     private GeneticPerson[] persons; //расписание
 
     private Random rand;
 
-    private int time = 0;
     private int timeMax = 1000000000;
 
-    public Start(GeneticPerson[] groups, int[] teachers, String[] timesfromuniver, GeneticRooms[] auditorsfromuniver){
+    public Start(GeneticPerson[] groups, int[] teachers, String[] timesfromuniver, GeneticRooms[] auditorsfromuniver, int[][] roomsCount, int[][] groupsCount){
         this.times = timesfromuniver;
         this.days = new String []{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
         this.persons = groups;
+        this.roomsCount = roomsCount;
+        this.groupsCount = groupsCount;
         this.teachers = teachers;
         this.auditors = auditorsfromuniver;
-
+        System.out.println(times.length);
+        System.out.println(days.length);
+        System.out.println(persons.length);
+        System.out.println(teachers.length);
+        System.out.println(auditors.length);
         rand = new Random();
         for (int j = 0; j < persons.length; j++){
             //заполняем случайными значениями
@@ -42,73 +47,88 @@ public class Start {
             persons[j].day = rand.nextInt(days.length);
         }
 
+
         //вызываем функцию составления расписания, которая выбирает подходящее время и аудитории для занятий из расписания
-        Thread myThread = new Thread() //Создаем новый объект потока (Thread)
-        {
+        Thread myThread = new Thread(){
+            @Override
             public void run() {
                 doColor();
             }
         };
-
-        myThread.start(); //запускаем поток
-
-        System.out.println("finished");
-        Excelwriter();
-        System.exit(0);
-        // doColor();
+        myThread.run();
+        System.out.println("dsadasd");
     }
 
 
     //генетический алгоритм
     private void doColor() {
-        final int PERSONS = 200; //количество особей
 
         GeneticPerson[] answer = null; //ответ, готовое расписание
-
-
+        final int PERSONS = 200; //количество особей
         ArrayList<GeneticPerson[]> personsList = new ArrayList<GeneticPerson[]>(); //список особей
-
-        minFitn = -1;
-
 
         //заполняем случайными значениями первую популяцию особей
         for (int i = 0; i < PERSONS; i++) {
             GeneticPerson[] pers = new GeneticPerson[persons.length];
             for (int j = 0; j < persons.length; j++) {
                 //неизменные критерии берем из стартовой заготовки расписания
-                pers[j] = new GeneticPerson(
-                        persons[j].group_id,
-                        persons[j].subject_id,
-                        persons[j].educ_type_id,
-                        persons[j].teacher_id,
-                        persons[j].faculty_id,
-                        persons[j].studcount
-                );
+                if (persons[j].educ_plan_pos_credit > 0){
+                    pers[j] = new GeneticPerson(
+                            persons[j - 1].group_id,
+                            persons[j - 1].subject_id,
+                            persons[j - 1].educ_type_id,
+                            persons[j - 1].teacher_id,
+                            persons[j - 1].faculty_id,
+                            persons[j - 1].studcount,
+                            persons[j - 1].educ_plan_pos_credit
+                    );
 
-                //остальные критерии генерируем случайным образом
-                pers[j].auditor = getauditorforgroup(pers[j]);
-                pers[j].time = rand.nextInt(times.length);
-                pers[j].day = rand.nextInt(days.length);
+                    pers[j].auditor = pers[j - 1].auditor;
+                    if (pers[j - 1].time < times.length) {
+                        pers[j].time = pers[j - 1].time + 1;
+                    } else {
+                        pers[j].time = pers[j - 1].time - 1;
+                    }
+                    pers[j].day = pers[j - 1].day;
+                } else {
+                    pers[j] = new GeneticPerson(
+                            persons[j].group_id,
+                            persons[j].subject_id,
+                            persons[j].educ_type_id,
+                            persons[j].teacher_id,
+                            persons[j].faculty_id,
+                            persons[j].studcount,
+                            persons[j].educ_plan_pos_credit
+                    );
+                    //остальные критерии генерируем случайным образом
+                    pers[j].auditor = getauditorforgroup(pers[j]);
+                    pers[j].time = rand.nextInt(times.length);
+                    pers[j].day = rand.nextInt(days.length);
+                }
             }
             personsList.add(pers);
         }
 
 
-        while (time > 0) //количество итераций, если решение не будет найдено
+        int minFitn = -1; //лучшее здоровье
+
+        while (1 > 0) //количество итераций, если решение не будет найдено
         {
-            answer = null;
+            System.out.println("working");
+            if (rand.nextInt(5) == 0) {
+                System.out.print(String.format("\033[2J"));
+            }
             int indMin = -1; //номер особи с лучшим здоровьем
 
-            ArrayList<Float> personFitness = new ArrayList<Float>(); //здоровье особей
+            ArrayList<Integer> personFitness = new ArrayList<Integer>(); //здоровье особей
 
             //считаем здоровье особей
             for (int i = 0; i < PERSONS; i++) {
                 personFitness.add(fitness(personsList.get(i)));
 
                 //ищем минимальное здоровье у популяции
-                if (indMin == -1 || personFitness.get(i).compareTo(personFitness.get(indMin)) < 0) {
+                if (indMin == -1 || personFitness.get(i) < personFitness.get(indMin)) {
                     indMin = i;
-                    answer = personsList.get(i);
                 }
 
                 //минимальное здоровье за все время
@@ -117,49 +137,29 @@ public class Start {
                 }
 
                 //если есть особь с идеальным здоровьем, заканчиваем
-                if (personFitness.get(i).equals(0)) {
+                if (personFitness.get(i) == 0) {
+                    answer = personsList.get(i);
                     break;
                 }
-
             }
-
-
-            //если есть особь с идеальным здоровьем, заканчиваем
-            if (personFitness.get(indMin).equals(0)) {
+            System.out.println(minFitn);
+            //если нашли ответ, заносим его в исходный шаблон расписания
+            if (answer != null ) {
+                for (int i = 0; i < persons.length; i++) {
+                    persons[i].auditor = answer[i].auditor;
+                    persons[i].time = answer[i].time;
+                    persons[i].day = answer[i].day;
+                }
+                System.out.println("persons = answer");
+                Excelwriter();
+                System.out.println("finished");
+                System.exit(0);
                 break;
             }
 
 
-            //размножение
-            ArrayList<GeneticPerson[]> newPersonsList = new ArrayList<GeneticPerson[]>(); //список новых особей
-            for (int i = 0; i < PERSONS / 2; i++) {
-                //выбираем два случайных родителя
-                GeneticPerson[] par1 = personsList.get(rand.nextInt(PERSONS));
-                GeneticPerson[] par2 = personsList.get(rand.nextInt(PERSONS));
 
-                //создаем ребенка
-                GeneticPerson[] child = new GeneticPerson[persons.length];
-                //заполняем его гены
-                for (int j = 0; j < persons.length; j++) {
-                    //случайно берем ген от одного из родителей
-                    if (rand.nextInt(2) == 0) {
-                        child[j] = par1[j].clone();
-                    } else {
-                        child[j] = par2[j].clone();
-                    }
 
-                    //мутация
-                    if (rand.nextInt(5) == 0) {
-                        child[j].auditor = getauditorforgroup(child[j]);
-                        child[j].time = rand.nextInt(times.length);
-                        child[j].day = rand.nextInt(days.length);
-                    }
-                }
-
-                //добавляем к нововй популяции
-                newPersonsList.add(child);
-
-            }
 
             //отбор, убиваем слабые особи
             for (int i = 0; i < PERSONS / 2; i++) {
@@ -179,29 +179,58 @@ public class Start {
                 personFitness.remove(ind);
             }
 
+            System.out.println("killing");
+
+            //размножение
+            ArrayList<GeneticPerson[]> newPersonsList = new ArrayList<GeneticPerson[]>(); //список новых особей
+            for (int i = 0; i < PERSONS / 2; i++) {
+                //выбираем два случайных родителя
+                GeneticPerson[] par1 = personsList.get(rand.nextInt(PERSONS / 2));
+                GeneticPerson[] par2 = personsList.get(rand.nextInt(PERSONS / 2));
+
+                //создаем ребенка
+                GeneticPerson[] child = new GeneticPerson[persons.length];
+                //заполняем его гены
+                if (rand.nextInt(2) == 0) {
+                    if (rand.nextInt(2) == 0){
+                        child = makeNewPop(par1);
+                    } else {
+                        child = makeNewPop(par2);
+                    }
+                } else {
+                    for (int j = 0; j < persons.length; j++) {
+                        //случайно берем ген от одного из родителей
+                        if (rand.nextInt(2) == 0) {
+                            child[j] = par1[j].clone();
+                        } else {
+                            child[j] = par2[j].clone();
+                        }
+                        //мутация
+                        if (rand.nextInt(5) == 0) {
+                            child[j].auditor = getauditorforgroup(child[j]);
+                            child[j].time = rand.nextInt(times.length);
+                            child[j].day = rand.nextInt(days.length);
+                        }
+                    }
+                }
+
+                //добавляем к нововй популяции
+                newPersonsList.add(child);
+            }
+            System.out.println("new pop");
+
             //объединяем списки
             for (GeneticPerson[] el : newPersonsList) {
                 personsList.add(el);
             }
-
-            //если нашли ответ, заносим его в исходный шаблон расписания
-            if (answer != null) {
-                for (int i = 0; i < persons.length; i++) {
-                    persons[i].auditor = answer[i].auditor;
-                    persons[i].time = answer[i].time;
-                    persons[i].day = answer[i].day;
-                }
-            }
         }
-
-
     }
 
 
     //функция определяет здоровье особи
     //personColors - генотип
-    private float fitness(GeneticPerson[] personColors) {
-        float result = 0; //начальное здоровье
+    private int fitness(GeneticPerson[] personColors) {
+        int result = 0; //начальное здоровье
         //проходим по всем вершинам графа
         for (int i = 0; i < personColors.length; i++) {
             //проверяем всех соседей
@@ -213,15 +242,15 @@ public class Start {
                 if (personColors[i].time == personColors[j].time && personColors[i].day == personColors[j].day) {
                     //если совпадают
                     if (personColors[i].teacher_id == personColors[j].teacher_id) {
-                        result += 100; //уменьшаем здоровье
+                        //result += 10; //уменьшаем здоровье
                     }
                     //если совпадают
                     if (personColors[i].auditor == personColors[j].auditor) {
-                        result += 100; //уменьшаем здоровье
+                        result += 10; //уменьшаем здоровье
                     }
                     //если совпадают
                     if (personColors[i].group_id == personColors[j].group_id) {
-                        result += 100; //уменьшаем здоровье
+                        //result += 10; //уменьшаем здоровье
                     }
                 }
             }
@@ -229,9 +258,9 @@ public class Start {
 
         //создаем копию массива
         GeneticPerson[] personColorsSortTime = (GeneticPerson[]) personColors.clone();
-        Arrays.sort(personColorsSortTime); //сортируем по возрастанию времени
+        Arrays.sort(personColorsSortTime); //сортируем по возрастанию времени*/
 
-        /*//проверка окон у преподавателей
+        //проверка окон у преподавателей
         for (int i = 0; i < teachers.length; i++) {
             int state = 0;
             int time = -1;
@@ -254,7 +283,7 @@ public class Start {
 
                     //была пара и после было окно
                     if (state == 2 || state == 1 && time != -1 && time != personColorsSortTime[j].time - 1) {
-                        result++;
+                        //result++;
                         state = 1;
                     }
 
@@ -266,7 +295,7 @@ public class Start {
                     }
                 }
             }
-        }*/
+        }
 
 
 /*        //проверка окон у групп
@@ -306,7 +335,7 @@ public class Start {
         }*/
 
 
-        //разные аудитории у групп
+        /*//разные аудитории у групп
         for (int i = 0; i < auditors.length; i++) {
             int state = 0;
             int time = -1;
@@ -336,7 +365,7 @@ public class Start {
                     }
                 }
             }
-        }
+        }*/
 
         /*//одинакого среднее количество занятий для группы
         for (int i = 0; i < groups.length; i++) {
@@ -368,7 +397,7 @@ public class Start {
 
         }*/
 
-
+        //System.out.println(result);
         return result;
     }
 
@@ -384,9 +413,19 @@ public class Start {
                 count++;
             }
         }
-        System.out.println(count);
         result = rand.nextInt(count);
         return arr.get(result);
+    }
+    private int getAuditorCount(GeneticPerson geneticPerson) {
+        int count = 0;
+        for(int i = 0; i < auditors.length; i++){
+            if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
+                    (geneticPerson.faculty_id == auditors[i].faculty_id) &&
+                    (geneticPerson.studcount <= auditors[i].audience_size)){
+                count++;
+            }
+        }
+        return count;
     }
 
     private int getaudiencetypeidchild(GeneticPerson geneticPerson) {
@@ -444,20 +483,19 @@ public class Start {
         // Create Other rows and cells with employees data
         int rowNum = 1;
 
-        for (int j = 0; j < answer.length; j++) {
+        for (int j = 0; j < persons.length; j++) {
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(answer[j].group_id);
-            row.createCell(1).setCellValue(answer[j].teacher_id);
-            row.createCell(2).setCellValue(auditors[answer[j].auditor].audience_id);
-            row.createCell(3).setCellValue(days[answer[j].day]);
-            row.createCell(4).setCellValue(times[answer[j].time]);
+            row.createCell(0).setCellValue(persons[j].group_id);
+            row.createCell(1).setCellValue(persons[j].teacher_id);
+            row.createCell(2).setCellValue(persons[j].auditor);
+            row.createCell(3).setCellValue(persons[j].day);
+            row.createCell(4).setCellValue(persons[j].time);
 
         }
         // Resize all columns to fit the content size
         for(int i = 0; i < columns.length; i++) {
             sheet.autoSizeColumn(i);
         }
-
         // Write the output to a file
         FileOutputStream fileOut = null;
         try {
@@ -472,5 +510,54 @@ public class Start {
         }
 
     }
-}
+    public class MyThread extends Thread {
+        public void run() {
+            doColor();
+        }
+    }
+    private GeneticPerson[] makeNewPop(GeneticPerson[] personColors) {
+        GeneticPerson[] result; //начальное здоровье
+        //проходим по всем вершинам графа
+        for (int i = 0; i < personColors.length; i++) {
+            //проверяем всех соседей
+            for (int j = i + 1; j < personColors.length; j++) {
+                if (personColors[i].time == personColors[j].time && personColors[i].day == personColors[j].day) {
+                    //если совпадают
+                    if (personColors[i].auditor == personColors[j].auditor) {
+                        int result1;
+                        switch (personColors[j].educ_type_id){
+                            case 1:
+                                result1 = 2;
+                                break;
+                            case 2:
+                                result1 = 3;
+                                break;
+                            case 3:
+                                result1 = 4;
+                                break;
+                            case 7:
+                                result1 = 3;
+                                break;
+                            default:
+                                result1 = 2;
+                                break;
+                        }
+                        if ((getAuditorCount(personColors[j]) * times.length * days.length / 2) < (groupsCount[personColors[j].faculty_id][result1])){
+                            personColors[j].time = rand.nextInt(times.length);
+                            personColors[j].day = rand.nextInt(days.length);
+                        } else {
+                            personColors[j].auditor = getauditorforgroup(personColors[j]);
+                        }
+                    }
 
+                    if (personColors[i].teacher_id == personColors[j].teacher_id){
+                        personColors[j].time = rand.nextInt(times.length);
+                        personColors[j].day = rand.nextInt(days.length);
+                    }
+                }
+            }
+        }
+        result = personColors.clone();
+        return result;
+    }
+}
