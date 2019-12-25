@@ -41,8 +41,8 @@ public class Start {
         System.out.println(auditors.length);
         rand = new Random();
         for (int j = 0; j < persons.length; j++){
-            //заполняем случайными значениями
-            persons[j].auditor = getauditorforgroup(persons[j]);
+            //заполняем случайными значениямии
+            persons[j].auditor = getauditorforgroup(this.persons[j]);
             persons[j].time = rand.nextInt(times.length);
             persons[j].day = rand.nextInt(days.length);
         }
@@ -72,25 +72,6 @@ public class Start {
             GeneticPerson[] pers = new GeneticPerson[persons.length];
             for (int j = 0; j < persons.length; j++) {
                 //неизменные критерии берем из стартовой заготовки расписания
-                if (persons[j].educ_plan_pos_credit > 0){
-                    pers[j] = new GeneticPerson(
-                            persons[j - 1].group_id,
-                            persons[j - 1].subject_id,
-                            persons[j - 1].educ_type_id,
-                            persons[j - 1].teacher_id,
-                            persons[j - 1].faculty_id,
-                            persons[j - 1].studcount,
-                            persons[j - 1].educ_plan_pos_credit
-                    );
-
-                    pers[j].auditor = pers[j - 1].auditor;
-                    if (pers[j - 1].time < times.length) {
-                        pers[j].time = pers[j - 1].time + 1;
-                    } else {
-                        pers[j].time = pers[j - 1].time - 1;
-                    }
-                    pers[j].day = pers[j - 1].day;
-                } else {
                     pers[j] = new GeneticPerson(
                             persons[j].group_id,
                             persons[j].subject_id,
@@ -104,7 +85,7 @@ public class Start {
                     pers[j].auditor = getauditorforgroup(pers[j]);
                     pers[j].time = rand.nextInt(times.length);
                     pers[j].day = rand.nextInt(days.length);
-                }
+
             }
             personsList.add(pers);
         }
@@ -561,3 +542,5 @@ public class Start {
         return result;
     }
 }
+
+

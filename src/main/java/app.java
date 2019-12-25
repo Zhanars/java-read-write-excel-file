@@ -18,12 +18,10 @@ public class app {
         String dbname = ini.get("database", "dbname");
         String username = ini.get("database", "username");
         String password = ini.get("database", "password");
-        String connectionUrl = "jdbc:sqlserver://" + server + ";databaseName=" + dbname + ";user=" + username + ";password=" + password;
-        try (Connection con = DriverManager.getConnection(connectionUrl); Statement stmt = con.createStatement();) {
-            String SQL = "SELECT [schedule_time_id]" +
-                    "      ,[schedule_time_begin]" +
-                    "      ,[schedule_time_end]" +
-                    "  FROM [atu_univer].[dbo].[univer_schedule_time] where status = 1 and schedule_time_type_id = 1 and schedule_time_id < 12" +
+        String connectionUrl = "jdbc:postgresql://" + server + "/" + dbname ;
+        try (Connection con = DriverManager.getConnection(connectionUrl,username,password); Statement stmt = con.createStatement();) {
+            String SQL = "SELECT schedule_time_id, schedule_time_begin, schedule_time_end" +
+                    " FROM schedule_time where  schedule_time_id < 12" +
                     "  order by schedule_time_begin";
             String SQL1 = "SELECT g.[group_id]" +
                     "      ,[educ_type_id]" +
@@ -69,47 +67,43 @@ public class app {
             }
 
             ResultSet groups1 = stmt.executeQuery(SQL1);
-            count = getCreditcount(groups1);
+            count = getRScount(groups1);
             int[] teachers = new int[count];
             GeneticPerson[] persons = new GeneticPerson[count];
             ResultSet groups = stmt.executeQuery(SQL1);
             int n = 0;
             int[][] faculty2 = new int[6][5];
             while (groups.next()) {
-                int creditCount = 0;
-                while (creditCount < groups.getInt("educ_plan_pos_credit")) {
-                    persons[n] = new GeneticPerson(
-                            groups.getInt("group_id"),
-                            groups.getInt("subject_id"),
-                            groups.getInt("educ_type_id"),
-                            groups.getInt("teacher_id"),
-                            groups.getInt("faculty_id"),
-                            groups.getInt("studcount"),
-                            creditCount
-                    );
-                    teachers[n] = groups.getInt("teacher_id");
-                    n++;
-                    creditCount++;
-                    int id;
-                    switch (groups.getInt("educ_type_id")) {
-                        case 1:
-                            id = 2;
-                            break;
-                        case 2:
-                            id = 3;
-                            break;
-                        case 3:
-                            id = 4;
-                            break;
-                        case 7:
-                            id = 3;
-                            break;
-                        default:
-                            id = 2;
-                            break;
-                    }
-                    faculty2[groups.getInt("faculty_id")][id]++;
+                persons[n] = new GeneticPerson(
+                        groups.getInt("group_id"),
+                        groups.getInt("subject_id"),
+                        groups.getInt("educ_type_id"),
+                        groups.getInt("teacher_id"),
+                        groups.getInt("faculty_id"),
+                        groups.getInt("studcount"),
+                        groups.getInt("educ_plan_pos_credit")
+                );
+                teachers[n] = groups.getInt("teacher_id");
+                n++;
+                int id;
+                switch (groups.getInt("educ_type_id")) {
+                    case 1:
+                        id = 2;
+                        break;
+                    case 2:
+                        id = 3;
+                        break;
+                    case 3:
+                        id = 4;
+                        break;
+                    case 7:
+                        id = 3;
+                        break;
+                    default:
+                        id = 2;
+                        break;
                 }
+                faculty2[groups.getInt("faculty_id")][id]++;
             }
             ResultSet rs1 = stmt.executeQuery(SQL2);
             count = getRScount(rs1);
