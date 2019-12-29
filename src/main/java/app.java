@@ -23,7 +23,8 @@ public class app {
             String SQL = "SELECT schedule_time_id, schedule_time_begin, schedule_time_end" +
                     " FROM schedule_time where  schedule_time_id < 12" +
                     "  order by schedule_time_begin";
-            String SQL1 = " SELECT id, group_id, educ_type_id, teacher_id, subject_id, hours_educ, students_count, audience_id, day_of_week_id, time_id, faculty_id, chair_id" +
+            String SQL1 = " SELECT id, group_id, educ_type_id, teacher_id, subject_id, hours_educ, students_count, " +
+                    "audience_id, day_of_week_id, time_id, faculty_id, chair_id, status " +
                     " FROM new_group";
             String SQL2 = "SELECT audience_id, faculty_id, building_id, chair_id, audience_type_id, audience_floor, audience_size, audience_number_ru" +
                     " FROM audience  where status = 1 order by faculty_id";
@@ -38,7 +39,6 @@ public class app {
                 times[i] = timesfromuniver.getString("schedule_time_id");
                 i++;
             }
-
             ResultSet groups1 = stmt.executeQuery(SQL1);
             count = getRScount(groups1);
             int[] teachers = new int[count];
@@ -47,16 +47,28 @@ public class app {
             int n = 0;
             int[][] faculty2 = new int[6][5];
             while (groups.next()) {
+                Array buf1 = groups.getArray("group_id");
+                int[] group_id = (int[])buf1.getArray();
+                buf1 = groups.getArray("subject_id");
+                int[] subject_id = (int[])buf1.getArray();
+                buf1 = groups.getArray("teacher_id");
+                int[] teacher_id = (int[])buf1.getArray();
+                int status = groups.getInt("status");
                 persons[n] = new GeneticPerson(
-                        groups.getInt("group_id"),
-                        groups.getInt("subject_id"),
+                        group_id,
+                        subject_id,
+                        teacher_id,
                         groups.getInt("educ_type_id"),
-                        groups.getInt("teacher_id"),
                         groups.getInt("faculty_id"),
-                        groups.getInt("studcount"),
-                        groups.getInt("educ_plan_pos_credit")
+                        groups.getInt("chair_id"),
+                        groups.getInt("students_count"),
+                        groups.getInt("hours_educ"),
+                        groups.getInt("audience_id"),
+                        groups.getInt("time_id"),
+                        groups.getInt("day_of_week_id"),
+                        status
                 );
-                teachers[n] = groups.getInt("teacher_id");
+                //teachers[n] = groups.getInt("teacher_id");
                 n++;
                 int id;
                 switch (groups.getInt("educ_type_id")) {
