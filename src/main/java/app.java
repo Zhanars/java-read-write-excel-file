@@ -44,15 +44,15 @@ public class app {
             int[] teachers = new int[count];
             GeneticPerson[] persons = new GeneticPerson[count];
             ResultSet groups = stmt.executeQuery(SQL1);
-            int n = 0;
+            int n = 0, n_t = 0;
             int[][] faculty2 = new int[6][5];
             while (groups.next()) {
                 Array buf1 = groups.getArray("group_id");
-                int[] group_id = (int[])buf1.getArray();
+                Integer[] group_id = (Integer[])buf1.getArray();
                 buf1 = groups.getArray("subject_id");
-                int[] subject_id = (int[])buf1.getArray();
+                Integer[] subject_id = (Integer[])buf1.getArray();
                 buf1 = groups.getArray("teacher_id");
-                int[] teacher_id = (int[])buf1.getArray();
+                Integer[] teacher_id = (Integer[])buf1.getArray();
                 int status = groups.getInt("status");
                 persons[n] = new GeneticPerson(
                         group_id,
@@ -68,7 +68,12 @@ public class app {
                         groups.getInt("day_of_week_id"),
                         status
                 );
-                //teachers[n] = groups.getInt("teacher_id");
+                for (int teach_id:teacher_id){
+                     if(Arrays.asList(teachers).contains(teach_id)){
+                         teachers[n_t] = groups.getInt("teacher_id");
+                         n_t++;
+                     }
+                }
                 n++;
                 int id;
                 switch (groups.getInt("educ_type_id")) {
@@ -101,6 +106,7 @@ public class app {
                 auditors[a] = new GeneticRooms(
                         auditorsfromuniver.getInt("audience_id"),
                         auditorsfromuniver.getInt("faculty_id"),
+                        auditorsfromuniver.getInt("chair_id"),
                         auditorsfromuniver.getInt("building_id"),
                         auditorsfromuniver.getInt("audience_type_id"),
                         auditorsfromuniver.getInt("audience_floor"),
@@ -108,7 +114,6 @@ public class app {
                         auditorsfromuniver.getString("audience_number_ru")
                 );
                 a++;
-
                 faculty[auditorsfromuniver.getInt("faculty_id")][auditorsfromuniver.getInt("audience_type_id")]++;
             }
             for (i = 1; i < 6; i++){

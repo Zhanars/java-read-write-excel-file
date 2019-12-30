@@ -42,9 +42,11 @@ public class Start {
         rand = new Random();
         for (int j = 0; j < persons.length; j++){
             //заполняем случайными значениямии
-            persons[j].auditor = getauditorforgroup(this.persons[j]);
-            persons[j].time = rand.nextInt(times.length);
-            persons[j].day = rand.nextInt(days.length);
+            if (persons[j].status != 2) {
+                persons[j].audience_id = getauditorforgroup(this.persons[j]);
+                persons[j].time_id = rand.nextInt(times.length);
+                persons[j].day_of_week_id = rand.nextInt(days.length);
+            }
         }
 
 
@@ -78,7 +80,7 @@ public class Start {
                             persons[j].educ_type_id,
                             persons[j].teacher_id,
                             persons[j].faculty_id,
-                            persons[j].studcount,
+                            persons[j].students_count,
                             persons[j].educ_plan_pos_credit
                     );
                     //остальные критерии генерируем случайным образом
@@ -387,11 +389,20 @@ public class Start {
         Map<Integer, Integer> arr = new HashMap<>();
         rand = new Random();
         for(int i = 0; i < auditors.length; i++){
-            if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
-                    (geneticPerson.faculty_id == auditors[i].faculty_id) &&
-                    (geneticPerson.studcount <= auditors[i].audience_size)){
-                arr.put(count, i);
-                count++;
+            if (geneticPerson.status == 1) {
+                if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
+                        (geneticPerson.faculty_id == auditors[i].faculty_id) &&
+                        (geneticPerson.students_count <= auditors[i].audience_size)) {
+                    arr.put(count, i);
+                    count++;
+                }
+            } else {
+                if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
+                        (geneticPerson.chair_id == auditors[i].chair_id) &&
+                        (geneticPerson.students_count <= auditors[i].audience_size)) {
+                    arr.put(count, i);
+                    count++;
+                }
             }
         }
         result = rand.nextInt(count);
@@ -402,7 +413,7 @@ public class Start {
         for(int i = 0; i < auditors.length; i++){
             if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
                     (geneticPerson.faculty_id == auditors[i].faculty_id) &&
-                    (geneticPerson.studcount <= auditors[i].audience_size)){
+                    (geneticPerson.students_count <= auditors[i].audience_size)){
                 count++;
             }
         }

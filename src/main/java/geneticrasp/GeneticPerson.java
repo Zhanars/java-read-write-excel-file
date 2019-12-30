@@ -3,9 +3,9 @@ package geneticrasp;
 //особь в генетическом алгоритме
 public class GeneticPerson implements Comparable //для сортировки
 {
-    public int[] group_id; //группа
-    public int[] subject_id; //дисциплина
-    public int[] teacher_id; //преподаватель
+    public Integer[] group_id; //группа
+    public Integer[] subject_id; //дисциплина
+    public Integer[] teacher_id; //преподаватель
     public int educ_type_id; //тип дисциплины
     public int faculty_id; //факультет
     public int chair_id; //факультет
@@ -17,7 +17,7 @@ public class GeneticPerson implements Comparable //для сортировки
     public int status; //постоянная
 
 
-    public GeneticPerson(int[] group_id, int[] subject_id, int[] teacher_id, int educ_type_id, int faculty_id,
+    public GeneticPerson(Integer[] group_id, Integer[] subject_id, Integer[] teacher_id, int educ_type_id, int faculty_id,
                          int chair_id, int students_count, int hours_educ, int audience_id, int time_id, int day_of_week_id, int status)
     {
         this.group_id = group_id;
