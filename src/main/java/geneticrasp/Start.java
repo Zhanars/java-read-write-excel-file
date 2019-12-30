@@ -12,8 +12,8 @@ import java.util.*;
 public class Start {
     //критерии
     private GeneticRooms[] auditors;
-    private String[] times;
-    private String[] days;
+    private String[] time_id;
+    private String[] day_of_week_id;
     private int[][] roomsCount;
     private int[][] groupsCount;
     private int[] teachers;
@@ -27,15 +27,15 @@ public class Start {
     private int timeMax = 1000000000;
 
     public Start(GeneticPerson[] groups, int[] teachers, String[] timesfromuniver, GeneticRooms[] auditorsfromuniver, int[][] roomsCount, int[][] groupsCount){
-        this.times = timesfromuniver;
-        this.days = new String []{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+        this.time_id = timesfromuniver;
+        this.day_of_week_id = new String []{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
         this.persons = groups;
         this.roomsCount = roomsCount;
         this.groupsCount = groupsCount;
         this.teachers = teachers;
         this.auditors = auditorsfromuniver;
-        System.out.println(times.length);
-        System.out.println(days.length);
+        System.out.println(time_id.length);
+        System.out.println(day_of_week_id.length);
         System.out.println(persons.length);
         System.out.println(teachers.length);
         System.out.println(auditors.length);
@@ -44,8 +44,8 @@ public class Start {
             //заполняем случайными значениямии
             if (persons[j].status != 2) {
                 persons[j].audience_id = getauditorforgroup(this.persons[j]);
-                persons[j].time_id = rand.nextInt(times.length);
-                persons[j].day_of_week_id = rand.nextInt(days.length);
+                persons[j].time_id = rand.nextInt(time_id.length);
+                persons[j].day_of_week_id = rand.nextInt(day_of_week_id.length);
             }
         }
 
@@ -77,16 +77,21 @@ public class Start {
                     pers[j] = new GeneticPerson(
                             persons[j].group_id,
                             persons[j].subject_id,
-                            persons[j].educ_type_id,
                             persons[j].teacher_id,
+                            persons[j].educ_type_id,
                             persons[j].faculty_id,
+                            persons[j].chair_id,
                             persons[j].students_count,
-                            persons[j].educ_plan_pos_credit
+                            persons[j].hours_educ,
+                            getauditorforgroup(pers[j]),
+                            rand.nextInt(time_id.length),
+                            rand.nextInt(day_of_week_id.length),
+                            persons[j].status
                     );
-                    //остальные критерии генерируем случайным образом
-                    pers[j].auditor = getauditorforgroup(pers[j]);
-                    pers[j].time = rand.nextInt(times.length);
-                    pers[j].day = rand.nextInt(days.length);
+                    /*//остальные критерии генерируем случайным образом
+                    pers[j].audience_id = ;
+                    pers[j].time_id = ;
+                    pers[j].day_of_week_id = ;*/
 
             }
             personsList.add(pers);
@@ -129,9 +134,9 @@ public class Start {
             //если нашли ответ, заносим его в исходный шаблон расписания
             if (answer != null ) {
                 for (int i = 0; i < persons.length; i++) {
-                    persons[i].auditor = answer[i].auditor;
-                    persons[i].time = answer[i].time;
-                    persons[i].day = answer[i].day;
+                    persons[i].audience_id = answer[i].audience_id;
+                    persons[i].time_id = answer[i].time_id;
+                    persons[i].day_of_week_id = answer[i].day_of_week_id;
                 }
                 System.out.println("persons = answer");
                 Excelwriter();
@@ -190,9 +195,9 @@ public class Start {
                         }
                         //мутация
                         if (rand.nextInt(5) == 0) {
-                            child[j].auditor = getauditorforgroup(child[j]);
-                            child[j].time = rand.nextInt(times.length);
-                            child[j].day = rand.nextInt(days.length);
+                            child[j].audience_id = getauditorforgroup(child[j]);
+                            child[j].time_id = rand.nextInt(time_id.length);
+                            child[j].day_of_week_id = rand.nextInt(day_of_week_id.length);
                         }
                     }
                 }
@@ -222,13 +227,13 @@ public class Start {
                     continue;
                 }
 
-                if (personColors[i].time == personColors[j].time && personColors[i].day == personColors[j].day) {
+                if (personColors[i].time_id == personColors[j].time_id && personColors[i].day_of_week_id == personColors[j].day_of_week_id) {
                     //если совпадают
                     if (personColors[i].teacher_id == personColors[j].teacher_id) {
                         //result += 10; //уменьшаем здоровье
                     }
                     //если совпадают
-                    if (personColors[i].auditor == personColors[j].auditor) {
+                    if (personColors[i].audience_id == personColors[j].audience_id) {
                         result += 10; //уменьшаем здоровье
                     }
                     //если совпадают
@@ -251,13 +256,13 @@ public class Start {
             //проходим по всем занятиям
             for (int j = 0; j < personColorsSortTime.length; j++) {
                 //сбрасываем значения флагов, если первый день или новый день
-                if (day == -1 || personColorsSortTime[j].day != day) {
-                    day = personColorsSortTime[j].day;
+                if (day == -1 || personColorsSortTime[j].day_of_week_id != day) {
+                    day = personColorsSortTime[j].day_of_week_id;
                     state = 0;
                     time = -1;
                 }
 
-                //если нужный преподаватель
+                /*//если нужный преподаватель
                 if (personColorsSortTime[j].teacher_id == teachers[i]) {
                     //еще не было пары
                     if (state == 0) {
@@ -265,18 +270,18 @@ public class Start {
                     }
 
                     //была пара и после было окно
-                    if (state == 2 || state == 1 && time != -1 && time != personColorsSortTime[j].time - 1) {
+                    if (state == 2 || state == 1 && time != -1 && time != personColorsSortTime[j].time_id - 1) {
                         //result++;
                         state = 1;
                     }
 
-                    time = personColorsSortTime[j].time;
+                    time = personColorsSortTime[j].time_id;
                 } else {
                     //уже была пара
                     if (state == 1) {
                         state = 2;
                     }
-                }
+                }*/
             }
         }
 
@@ -288,8 +293,8 @@ public class Start {
             int day = -1;
             for (int j = 0; j < personColorsSortTime.length; j++) {
                 //сбрасываем значения флагов, если первый день или новый день
-                if (day == -1 || personColorsSortTime[j].day != day) {
-                    day = personColorsSortTime[j].day;
+                if (day == -1 || personColorsSortTime[j].day_of_week_id != day) {
+                    day = personColorsSortTime[j].day_of_week_id;
                     state = 0;
                     time = -1;
                 }
@@ -302,12 +307,12 @@ public class Start {
                     }
 
                     //пара была и было окно
-                    if (state == 2 || state == 1 && time != -1 && time != personColorsSortTime[j].time - 1) {
+                    if (state == 2 || state == 1 && time != -1 && time != personColorsSortTime[j].time_id - 1) {
                         result++;
                         state = 1;
                     }
 
-                    time = personColorsSortTime[j].time;
+                    time = personColorsSortTime[j].time_id;
                 } else {
                     //уже была пара
                     if (state == 1) {
@@ -324,24 +329,24 @@ public class Start {
             int time = -1;
             int day = -1;
             for (int j = 0; j < personColorsSortTime.length; j++) {
-                if (day == -1 || personColorsSortTime[j].day != day) {
-                    day = personColorsSortTime[j].day;
+                if (day == -1 || personColorsSortTime[j].day_of_week_id != day) {
+                    day = personColorsSortTime[j].day_of_week_id;
                     state = 0;
                     time = -1;
                 }
 
-                if (personColorsSortTime[j].auditor == i) {
+                if (personColorsSortTime[j].audience_id == i) {
                     if (state == 0) {
                         state = 1;
                     }
 
 
-                    if (state == 2 || state == 1 && time != -1 && time != personColorsSortTime[j].time - 1) {
+                    if (state == 2 || state == 1 && time != -1 && time != personColorsSortTime[j].time_id - 1) {
                         result++;
                         state = 1;
                     }
 
-                    time = personColorsSortTime[j].time;
+                    time = personColorsSortTime[j].time_id;
                 } else {
                     if (state == 1) {
                         state = 2;
@@ -360,7 +365,7 @@ public class Start {
 
             //считаем пары
             for (int j = 0; j < personColorsSortTime.length; j++) {
-                lessonsInDay[personColorsSortTime[j].day]++;
+                lessonsInDay[personColorsSortTime[j].day_of_week_id]++;
             }
 
             //ищем среднее количество
@@ -475,15 +480,15 @@ public class Start {
         // Create Other rows and cells with employees data
         int rowNum = 1;
 
-        for (int j = 0; j < persons.length; j++) {
+        /*for (int j = 0; j < persons.length; j++) {
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue(persons[j].group_id);
             row.createCell(1).setCellValue(persons[j].teacher_id);
-            row.createCell(2).setCellValue(persons[j].auditor);
-            row.createCell(3).setCellValue(persons[j].day);
-            row.createCell(4).setCellValue(persons[j].time);
+            row.createCell(2).setCellValue(persons[j].audience_id);
+            row.createCell(3).setCellValue(persons[j].day_of_week_id);
+            row.createCell(4).setCellValue(persons[j].time_id);
 
-        }
+        }*/
         // Resize all columns to fit the content size
         for(int i = 0; i < columns.length; i++) {
             sheet.autoSizeColumn(i);
@@ -513,9 +518,9 @@ public class Start {
         for (int i = 0; i < personColors.length; i++) {
             //проверяем всех соседей
             for (int j = i + 1; j < personColors.length; j++) {
-                if (personColors[i].time == personColors[j].time && personColors[i].day == personColors[j].day) {
+                if (personColors[i].time_id == personColors[j].time_id && personColors[i].day_of_week_id == personColors[j].day_of_week_id) {
                     //если совпадают
-                    if (personColors[i].auditor == personColors[j].auditor) {
+                    if (personColors[i].audience_id == personColors[j].audience_id) {
                         int result1;
                         switch (personColors[j].educ_type_id){
                             case 1:
@@ -534,17 +539,17 @@ public class Start {
                                 result1 = 2;
                                 break;
                         }
-                        if ((getAuditorCount(personColors[j]) * times.length * days.length / 2) < (groupsCount[personColors[j].faculty_id][result1])){
-                            personColors[j].time = rand.nextInt(times.length);
-                            personColors[j].day = rand.nextInt(days.length);
+                        if ((getAuditorCount(personColors[j]) * time_id.length * day_of_week_id.length / 2) < (groupsCount[personColors[j].faculty_id][result1])){
+                            personColors[j].time_id = rand.nextInt(time_id.length);
+                            personColors[j].day_of_week_id = rand.nextInt(day_of_week_id.length);
                         } else {
-                            personColors[j].auditor = getauditorforgroup(personColors[j]);
+                            personColors[j].audience_id = getauditorforgroup(personColors[j]);
                         }
                     }
 
                     if (personColors[i].teacher_id == personColors[j].teacher_id){
-                        personColors[j].time = rand.nextInt(times.length);
-                        personColors[j].day = rand.nextInt(days.length);
+                        personColors[j].time_id = rand.nextInt(time_id.length);
+                        personColors[j].day_of_week_id = rand.nextInt(day_of_week_id.length);
                     }
                 }
             }
