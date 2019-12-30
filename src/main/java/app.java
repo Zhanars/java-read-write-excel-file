@@ -53,7 +53,19 @@ public class app {
                 Integer[] subject_id = (Integer[])buf1.getArray();
                 buf1 = groups.getArray("teacher_id");
                 Integer[] teacher_id = (Integer[])buf1.getArray();
-                int status = groups.getInt("status");
+                int status = 0;
+                if (groups.getInt("audience_id") != 0) {
+                    status += 2;
+                }
+                if (groups.getInt("day_of_week_id") != 0) {
+                    status += 3;
+                }
+                if (groups.getInt("time_id") != 0) {
+                    status += 4;
+                }
+                if (groups.getInt("status") > 0 && status == 0){
+                    status = 1;
+                }
                 persons[n] = new GeneticPerson(
                         group_id,
                         subject_id,
@@ -68,6 +80,7 @@ public class app {
                         groups.getInt("day_of_week_id"),
                         status
                 );
+                System.out.println(n + " status: " + status);
                 for (int teach_id:teacher_id){
                      if(Arrays.asList(teachers).contains(teach_id)){
                          teachers[n_t] = groups.getInt("teacher_id");
