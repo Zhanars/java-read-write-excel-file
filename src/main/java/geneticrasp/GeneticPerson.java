@@ -15,10 +15,11 @@ public class GeneticPerson implements Comparable //для сортировки
     public int time_id; //время
     public int day_of_week_id; //день
     public int status; //постоянная
+    public Integer[] students; //преподаватель
 
 
     public GeneticPerson(Integer[] group_id, Integer[] subject_id, Integer[] teacher_id, int educ_type_id, int faculty_id,
-                         int chair_id, int students_count, int hours_educ, int audience_id, int time_id, int day_of_week_id, int status)
+                         int chair_id, int students_count, int hours_educ, int audience_id, int time_id, int day_of_week_id, int status, Integer[] students)
     {
         this.group_id = group_id;
         this.subject_id = subject_id;
@@ -32,13 +33,14 @@ public class GeneticPerson implements Comparable //для сортировки
         this.time_id = time_id;
         this.day_of_week_id = day_of_week_id;
         this.status = status;
+        this.students = students;
     }
 
     //копирование особи
     public final GeneticPerson clone()
     {
         GeneticPerson gp = new GeneticPerson(group_id, subject_id, teacher_id, educ_type_id,  faculty_id,
-                chair_id, students_count, hours_educ, audience_id, time_id, day_of_week_id, status);
+                chair_id, students_count, hours_educ, audience_id, time_id, day_of_week_id, status, students);
         gp.audience_id = audience_id;
         gp.time_id = time_id;
         gp.day_of_week_id = day_of_week_id;

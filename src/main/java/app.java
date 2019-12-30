@@ -24,7 +24,7 @@ public class app {
                     " FROM schedule_time where  schedule_time_id < 12" +
                     "  order by schedule_time_begin";
             String SQL1 = " SELECT id, group_id, educ_type_id, teacher_id, subject_id, hours_educ, students_count, " +
-                    "audience_id, day_of_week_id, time_id, faculty_id, chair_id, status " +
+                    "audience_id, day_of_week_id, time_id, faculty_id, chair_id, status, students_arr " +
                     " FROM new_group";
             String SQL2 = "SELECT audience_id, faculty_id, building_id, chair_id, audience_type_id, audience_floor, audience_size, audience_number_ru" +
                     " FROM audience  where status = 1 order by faculty_id";
@@ -46,6 +46,7 @@ public class app {
             ResultSet groups = stmt.executeQuery(SQL1);
             int n = 0, n_t = 0;
             int[][] faculty2 = new int[6][5];
+            int[][] chair2 = new int[26][5];
             while (groups.next()) {
                 Array buf1 = groups.getArray("group_id");
                 Integer[] group_id = (Integer[])buf1.getArray();
@@ -53,18 +54,17 @@ public class app {
                 Integer[] subject_id = (Integer[])buf1.getArray();
                 buf1 = groups.getArray("teacher_id");
                 Integer[] teacher_id = (Integer[])buf1.getArray();
-                int status = 0;
+                buf1 = groups.getArray("students_arr");
+                Integer[] students_arr = (Integer[])buf1.getArray();
+                int status = (groups.getInt("status") == 0) ? 7 : 1;
                 if (groups.getInt("audience_id") != 0) {
-                    status += 2;
+                    status *= 2;
                 }
                 if (groups.getInt("day_of_week_id") != 0) {
-                    status += 3;
+                    status *= 3;
                 }
                 if (groups.getInt("time_id") != 0) {
-                    status += 4;
-                }
-                if (groups.getInt("status") > 0 && status == 0){
-                    status = 1;
+                    status *= 5;
                 }
                 persons[n] = new GeneticPerson(
                         group_id,
@@ -78,7 +78,8 @@ public class app {
                         groups.getInt("audience_id"),
                         groups.getInt("time_id"),
                         groups.getInt("day_of_week_id"),
-                        status
+                        status,
+                        students_arr
                 );
                 System.out.println(n + " status: " + status);
                 for (int teach_id:teacher_id){
@@ -107,6 +108,7 @@ public class app {
                         break;
                 }
                 faculty2[groups.getInt("faculty_id")][id]++;
+                chair2[groups.getInt("chair_id")][id]++;
             }
             ResultSet rs1 = stmt.executeQuery(SQL2);
             count = getRScount(rs1);
@@ -114,6 +116,7 @@ public class app {
             GeneticRooms[] auditors = new GeneticRooms[count];
             ResultSet auditorsfromuniver = stmt.executeQuery(SQL2);
             int[][] faculty = new int[6][5];
+            int[][] chair = new int[26][5];
             int a = 0;
             while (auditorsfromuniver.next()) {
                 auditors[a] = new GeneticRooms(
@@ -128,13 +131,14 @@ public class app {
                 );
                 a++;
                 faculty[auditorsfromuniver.getInt("faculty_id")][auditorsfromuniver.getInt("audience_type_id")]++;
+                chair[auditorsfromuniver.getInt("chair_id")][auditorsfromuniver.getInt("audience_type_id")]++;
             }
             for (i = 1; i < 6; i++){
                 for (int j = 1; j < 5; j++){
                     System.out.println(i + " " + j + " " + faculty[i][j] + " " + faculty2[i][j]);
                 }
             }
-            new Start(persons, teachers, times, auditors, faculty, faculty2);
+            new Start(persons, teachers, times, auditors, faculty, faculty2, chair, chair2);
         }
         // Handle any errors that may have occurred.
         catch (SQLException e) {
