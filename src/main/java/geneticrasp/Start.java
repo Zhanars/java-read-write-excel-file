@@ -444,6 +444,7 @@ public class Start {
                 }
             }
         }
+        System.out.println(count);
         result = rand.nextInt(count);
         return arr.get(result);
     }
