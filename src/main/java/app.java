@@ -81,7 +81,6 @@ public class app {
                         status,
                         students_arr
                 );
-                System.out.println(n + " status: " + status);
                 for (int teach_id:teacher_id){
                      if(Arrays.asList(teachers).contains(teach_id)){
                          teachers[n_t] = groups.getInt("teacher_id");
@@ -132,11 +131,6 @@ public class app {
                 a++;
                 faculty[auditorsfromuniver.getInt("faculty_id")][auditorsfromuniver.getInt("audience_type_id")]++;
                 chair[auditorsfromuniver.getInt("chair_id")][auditorsfromuniver.getInt("audience_type_id")]++;
-            }
-            for (i = 1; i < 6; i++){
-                for (int j = 1; j < 5; j++){
-                    System.out.println(i + " " + j + " " + faculty[i][j] + " " + faculty2[i][j]);
-                }
             }
             new Start(persons, teachers, times, auditors, faculty, faculty2, chair, chair2);
         }

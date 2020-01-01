@@ -40,6 +40,7 @@ public class Start {
         this.teachers = teachers;
         this.auditors = auditorsfromuniver;
         rand = new Random();
+        System.out.println(persons.length);
         for (int j = 0; j < persons.length; j++){
             //заполняем случайными значениямии
             if (persons[j].audience_id == 0) {
@@ -82,7 +83,7 @@ public class Start {
                 if (persons[j].status % 2 == 0 ){
                     ba = persons[j].audience_id;
                 } else {
-                    ba = getauditorforgroup(pers[j]);
+                    ba = getauditorforgroup(persons[j]);
                 }
                 if (persons[j].status % 3 == 0 ){
                     bd = persons[j].day_of_week_id;
@@ -217,7 +218,7 @@ public class Start {
                             if (persons[j].status % 2 == 0 ){
                                 ba = persons[j].audience_id;
                             } else {
-                                ba = getauditorforgroup(child[j]);
+                                ba = getauditorforgroup(persons[j]);
                             }
                             if (persons[j].status % 3 == 0 ){
                                 bd = persons[j].day_of_week_id;
