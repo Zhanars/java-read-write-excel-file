@@ -25,7 +25,7 @@ public class app {
                     "  order by schedule_time_begin";
             String SQL1 = " SELECT id, group_id, educ_type_id, teacher_id, subject_id, hours_educ, students_count, " +
                     "audience_id, day_of_week_id, time_id, faculty_id, chair_id, status, students_arr " +
-                    " FROM new_group";
+                    " FROM new_group where deleted_date is null";
             String SQL2 = "SELECT audience_id, faculty_id, building_id, chair_id, audience_type_id, audience_floor, audience_size, audience_number_ru" +
                     " FROM audience  where status = 1 order by faculty_id";
             
@@ -40,7 +40,7 @@ public class app {
                 i++;
             }
             ResultSet groups1 = stmt.executeQuery(SQL1);
-            count = getRScount(groups1);
+            count = getRScount1(groups1);
             int[] teachers = new int[count];
             GeneticPerson[] persons = new GeneticPerson[count];
             ResultSet groups = stmt.executeQuery(SQL1);
@@ -56,38 +56,44 @@ public class app {
                 Integer[] teacher_id = (Integer[])buf1.getArray();
                 buf1 = groups.getArray("students_arr");
                 Integer[] students_arr = (Integer[])buf1.getArray();
-                int status = (groups.getInt("status") == 0) ? 7 : 1;
+                buf1 = groups.getArray("time_id");
+                Integer[] bind_times = (Integer[])buf1.getArray();
+                int status = (groups.getInt("status") == -1) ? 7 : 1;
                 if (groups.getInt("audience_id") != 0) {
                     status *= 2;
                 }
                 if (groups.getInt("day_of_week_id") != 0) {
                     status *= 3;
                 }
-                if (groups.getInt("time_id") != 0) {
+                if (bind_times.length > 0) {
                     status *= 5;
+                } else {
+                    bind_times = new Integer[]{0};
                 }
-                persons[n] = new GeneticPerson(
-                        group_id,
-                        subject_id,
-                        teacher_id,
-                        groups.getInt("educ_type_id"),
-                        groups.getInt("faculty_id"),
-                        groups.getInt("chair_id"),
-                        groups.getInt("students_count"),
-                        groups.getInt("hours_educ"),
-                        groups.getInt("audience_id"),
-                        groups.getInt("time_id"),
-                        groups.getInt("day_of_week_id"),
-                        status,
-                        students_arr
-                );
-                for (int teach_id:teacher_id){
-                     if(Arrays.asList(teachers).contains(teach_id)){
-                         teachers[n_t] = groups.getInt("teacher_id");
-                         n_t++;
-                     }
+                for(int time_id : bind_times) {
+                    persons[n] = new GeneticPerson(
+                            group_id,
+                            subject_id,
+                            teacher_id,
+                            groups.getInt("educ_type_id"),
+                            groups.getInt("faculty_id"),
+                            groups.getInt("chair_id"),
+                            groups.getInt("students_count"),
+                            groups.getInt("hours_educ"),
+                            groups.getInt("audience_id"),
+                            time_id,
+                            groups.getInt("day_of_week_id"),
+                            status,
+                            students_arr
+                    );
+                    for (int teach_id : teacher_id) {
+                        if (Arrays.asList(teachers).contains(teach_id)) {
+                            teachers[n_t] = groups.getInt("teacher_id");
+                            n_t++;
+                        }
+                    }
+                    n++;
                 }
-                n++;
                 int id;
                 switch (groups.getInt("educ_type_id")) {
                     case 1:
@@ -143,6 +149,18 @@ public class app {
         int result = 0;
         while (rs.next()){
             result++;
+        }
+        return result;
+    }
+    public static int getRScount1(ResultSet rs) throws SQLException {
+        int result = 0;
+        while (rs.next()){
+            Array buf1 = rs.getArray("time_id");
+            Integer[] bind_times = (Integer[])buf1.getArray();
+            if (bind_times.length == 0){
+                bind_times = new Integer[]{0};
+            }
+            result += bind_times.length;
         }
         return result;
     }

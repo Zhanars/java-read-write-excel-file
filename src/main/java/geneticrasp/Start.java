@@ -261,13 +261,15 @@ public class Start {
                 if (i == j) {
                     continue;
                 }
-
                 if (personColors[i].time_id == personColors[j].time_id && personColors[i].day_of_week_id == personColors[j].day_of_week_id) {
                     //если совпадают
                     if (checkIntersection(personColors[i].teacher_id, personColors[j].teacher_id)) {
                         result += 10; //уменьшаем здоровье
                     }
                     //если совпадают
+                    if (personColors[i].status % 2 == 0){
+                        continue;
+                    }
                     if (personColors[i].audience_id == personColors[j].audience_id) {
                         result += 10; //уменьшаем здоровье
                     }
@@ -425,8 +427,8 @@ public class Start {
     }
 
     private int getauditorforgroup(GeneticPerson geneticPerson) {
-        int result, count = 0;
-        Map<Integer, Integer> arr = new HashMap<>();
+        int result = 0, count = 0, count1 = 0, count2 = 0, count3 = 0;
+        Map<Integer, Integer> arr = new HashMap<>(), arr1 = new HashMap<>(), arr2 = new HashMap<>(), arr3 = new HashMap<>();
         rand = new Random();
         for(int i = 0; i < auditors.length; i++){
             if (geneticPerson.status % 7 != 0) {
@@ -437,17 +439,42 @@ public class Start {
                     count++;
                 }
             } else {
-                if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
-                        (geneticPerson.chair_id == auditors[i].chair_id) &&
-                        (geneticPerson.students_count <= auditors[i].audience_size)) {
-                    arr.put(count, i);
-                    count++;
+                if (geneticPerson.students_count <= auditors[i].audience_size) {
+                    if (getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) {
+                        if ((geneticPerson.chair_id == auditors[i].chair_id)) {
+                            arr.put(count, i);
+                            count++;
+                        } else if (geneticPerson.faculty_id == auditors[i].faculty_id) {
+                            arr1.put(count1, i);
+                            count1++;
+                        }
+                    } else if(getaudiencetypeidchild(geneticPerson) == (auditors[i].audience_type_id - 1)){
+                        if ((geneticPerson.chair_id == auditors[i].chair_id)) {
+                            arr2.put(count2, i);
+                            count2++;
+                        } else if (geneticPerson.faculty_id == auditors[i].faculty_id) {
+                            arr3.put(count3, i);
+                            count3++;
+                        }
+                    }
                 }
             }
         }
-        System.out.println(count);
-        result = rand.nextInt(count);
-        return arr.get(result);
+        if (count > 2){
+            result = arr.get(rand.nextInt(count));
+        }
+        if (count1 > 2){
+            result = arr1.get(rand.nextInt(count1));
+        }
+        if (count2 > 2){
+            result = arr2.get(rand.nextInt(count2));
+        }
+        if (count3 > 2){
+            result = arr3.get(rand.nextInt(count3));
+        }
+        return result;
+
+
     }
     private int getAuditorCount(GeneticPerson geneticPerson) {
         int count = 0;
