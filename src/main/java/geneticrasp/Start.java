@@ -117,10 +117,16 @@ public class Start {
         }
 
 
-        int minFitn = -1; //лучшее здоровье
+        int minFitn = -1, timebuff = 0, minFitnBuff = -1; //лучшее здоровье
 
         while (1 > 0) //количество итераций, если решение не будет найдено
         {
+            if(minFitnBuff == minFitn){
+                timebuff++;
+            } else {
+                minFitnBuff = minFitn;
+                timebuff = 0;
+            }
             System.out.println("working");
             if (rand.nextInt(5) == 0) {
                 System.out.print(String.format("\033[2J"));
@@ -144,7 +150,7 @@ public class Start {
                 }
 
                 //если есть особь с идеальным здоровьем, заканчиваем
-                if (personFitness.get(i) == 0) {
+                if ((personFitness.get(i) == 0) || (timebuff == 10)) {
                     answer = personsList.get(i);
                     break;
                 }
@@ -255,21 +261,22 @@ public class Start {
     private int fitness(GeneticPerson[] personColors) {
         int result = 0; //начальное здоровье
         //проходим по всем вершинам графа
-        for (int i = 0; i < personColors.length; i++) {
+        for (int i = 0; i < personColors.length - 1; i++) {
             //проверяем всех соседей
-            for (int j = 0; j < personColors.length; j++) {
+            for (int j = i + 1; j < personColors.length; j++) {
                 if (i == j) {
                     continue;
                 }
                 if (personColors[i].time_id == personColors[j].time_id && personColors[i].day_of_week_id == personColors[j].day_of_week_id) {
                     //если совпадают
+                    if (personColors[i].status % 2 == 0){
+                        continue;
+                    }
                     if (checkIntersection(personColors[i].teacher_id, personColors[j].teacher_id)) {
                         result += 10; //уменьшаем здоровье
                     }
                     //если совпадают
-                    if (personColors[i].status % 2 == 0){
-                        continue;
-                    }
+
                     if (personColors[i].audience_id == personColors[j].audience_id) {
                         result += 10; //уменьшаем здоровье
                     }
@@ -434,12 +441,12 @@ public class Start {
             if (geneticPerson.status % 7 != 0) {
                 if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
                         (geneticPerson.faculty_id == auditors[i].faculty_id) &&
-                        (geneticPerson.students_count <= auditors[i].audience_size)) {
+                        (geneticPerson.students_count <= auditors[i].audience_size + 10)) {
                     arr.put(count, i);
                     count++;
                 }
             } else {
-                if (geneticPerson.students_count <= auditors[i].audience_size) {
+                if (geneticPerson.students_count <= auditors[i].audience_size + 10) {
                     if (getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) {
                         if ((geneticPerson.chair_id == auditors[i].chair_id)) {
                             arr.put(count, i);
@@ -477,23 +484,45 @@ public class Start {
 
     }
     private int getAuditorCount(GeneticPerson geneticPerson) {
-        int count = 0;
+        int result = 0, count = 0, count1 = 0, count2 = 0, count3 = 0;
         for(int i = 0; i < auditors.length; i++){
             if (geneticPerson.status % 7 != 0) {
                 if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
                         (geneticPerson.faculty_id == auditors[i].faculty_id) &&
-                        (geneticPerson.students_count <= auditors[i].audience_size)) {
+                        (geneticPerson.students_count <= auditors[i].audience_size + 10)) {
                     count++;
                 }
             } else {
-                if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
-                        (geneticPerson.chair_id == auditors[i].chair_id) &&
-                        (geneticPerson.students_count <= auditors[i].audience_size)) {
-                    count++;
+                if (geneticPerson.students_count <= auditors[i].audience_size + 10) {
+                    if (getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) {
+                        if ((geneticPerson.chair_id == auditors[i].chair_id)) {
+                            count++;
+                        } else if (geneticPerson.faculty_id == auditors[i].faculty_id) {
+                            count1++;
+                        }
+                    } else if(getaudiencetypeidchild(geneticPerson) == (auditors[i].audience_type_id - 1)){
+                        if ((geneticPerson.chair_id == auditors[i].chair_id)) {
+                            count2++;
+                        } else if (geneticPerson.faculty_id == auditors[i].faculty_id) {
+                            count3++;
+                        }
+                    }
                 }
             }
         }
-        return count;
+        if (count > 2){
+            result = count;
+        }
+        if (count1 > 2){
+            result = count1;
+        }
+        if (count2 > 2){
+            result = count2;
+        }
+        if (count3 > 2){
+            result = count3;
+        }
+        return result;
     }
     private boolean checkIntersection(Integer[] a, Integer[] b) {
         for (Integer item:a){
@@ -501,6 +530,13 @@ public class Start {
                 return true;
             }
         }
+        /*for(int i = 0; i < a.length; i++){
+            for(int j = 0; j < b.length; j++){
+                if(a[i].equals(b[j])){
+                    return true;
+                }
+            }
+        }*/
         return false;
     }
 
@@ -559,15 +595,15 @@ public class Start {
         // Create Other rows and cells with employees data
         int rowNum = 1;
 
-        /*for (int j = 0; j < persons.length; j++) {
+        for (int j = 0; j < persons.length; j++) {
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(persons[j].group_id);
-            row.createCell(1).setCellValue(persons[j].teacher_id);
-            row.createCell(2).setCellValue(persons[j].audience_id);
-            row.createCell(3).setCellValue(persons[j].day_of_week_id);
-            row.createCell(4).setCellValue(persons[j].time_id);
+            row.createCell(0).setCellValue(Arrays.toString(persons[j].group_id));
+            row.createCell(1).setCellValue(Arrays.toString(persons[j].teacher_id));
+            row.createCell(2).setCellValue(auditors[persons[j].audience_id].audience_id);
+            row.createCell(3).setCellValue(day_of_week_id[persons[j].day_of_week_id]);
+            row.createCell(4).setCellValue(time_id[persons[j].time_id]);
 
-        }*/
+        }
         // Resize all columns to fit the content size
         for(int i = 0; i < columns.length; i++) {
             sheet.autoSizeColumn(i);
@@ -638,6 +674,10 @@ public class Start {
                     }
 
                     if (checkIntersection(personColors[i].teacher_id, personColors[j].teacher_id)){
+                        personColors[j].time_id = rand.nextInt(time_id.length);
+                        personColors[j].day_of_week_id = rand.nextInt(day_of_week_id.length);
+                    }
+                    if (checkIntersection(personColors[i].students, personColors[j].students)){
                         personColors[j].time_id = rand.nextInt(time_id.length);
                         personColors[j].day_of_week_id = rand.nextInt(day_of_week_id.length);
                     }
