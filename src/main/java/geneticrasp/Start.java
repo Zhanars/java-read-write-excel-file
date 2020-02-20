@@ -636,7 +636,7 @@ public class Start {
             for (int j = i + 1; j < personColors.length; j++) {
                 if (personColors[i].time_id == personColors[j].time_id && personColors[i].day_of_week_id == personColors[j].day_of_week_id) {
                     //если совпадают
-                    if (personColors[i].audience_id == personColors[j].audience_id && personColors[i].audience_id != 429) {
+                    if ((personColors[i].audience_id == personColors[j].audience_id) && (personColors[i].audience_id != auditors.length - 1)) {
                         int result1;
                         switch (personColors[j].educ_type_id){
                             case 1:
