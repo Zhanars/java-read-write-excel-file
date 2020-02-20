@@ -28,6 +28,7 @@ public class app {
                     " FROM new_group where deleted_date is null and students_count > 5";
             String SQL2 = "SELECT audience_id, faculty_id, building_id, chair_id, audience_type_id, audience_floor, audience_size, audience_number_ru" +
                     " FROM audience  where status = 1 order by faculty_id";
+            String SQL3 = "SELECT MAX(audience_id) as max_audience_id FROM audience  where status = 1";
             
             
             ResultSet timesfromuniver1 = stmt.executeQuery(SQL);
@@ -42,26 +43,39 @@ public class app {
 
             ResultSet rs1 = stmt.executeQuery(SQL2);
             count = getRScount(rs1);
-            i = 0;
+
             GeneticRooms[] auditors = new GeneticRooms[count];
             ResultSet auditorsfromuniver = stmt.executeQuery(SQL2);
             int[][] faculty = new int[6][5];
             int[][] chair = new int[26][5];
             int a = 0;
             while (auditorsfromuniver.next()) {
-                auditors[a] = new GeneticRooms(
-                        auditorsfromuniver.getInt("audience_id"),
-                        auditorsfromuniver.getInt("faculty_id"),
-                        auditorsfromuniver.getInt("chair_id"),
-                        auditorsfromuniver.getInt("building_id"),
-                        auditorsfromuniver.getInt("audience_type_id"),
-                        auditorsfromuniver.getInt("audience_floor"),
-                        auditorsfromuniver.getInt("audience_size"),
-                        auditorsfromuniver.getString("audience_number_ru")
-                );
-                a++;
-                faculty[auditorsfromuniver.getInt("faculty_id")][auditorsfromuniver.getInt("audience_type_id")]++;
-                chair[auditorsfromuniver.getInt("chair_id")][auditorsfromuniver.getInt("audience_type_id")]++;
+                if (auditorsfromuniver.getInt("audience_id") != 429) {
+                    auditors[a] = new GeneticRooms(
+                            auditorsfromuniver.getInt("audience_id"),
+                            auditorsfromuniver.getInt("faculty_id"),
+                            auditorsfromuniver.getInt("chair_id"),
+                            auditorsfromuniver.getInt("building_id"),
+                            auditorsfromuniver.getInt("audience_type_id"),
+                            auditorsfromuniver.getInt("audience_floor"),
+                            auditorsfromuniver.getInt("audience_size"),
+                            auditorsfromuniver.getString("audience_number_ru")
+                    );
+                    a++;
+                    faculty[auditorsfromuniver.getInt("faculty_id")][auditorsfromuniver.getInt("audience_type_id")]++;
+                    chair[auditorsfromuniver.getInt("chair_id")][auditorsfromuniver.getInt("audience_type_id")]++;
+                } else {
+                    auditors[count - 1] = new GeneticRooms(
+                            auditorsfromuniver.getInt("audience_id"),
+                            auditorsfromuniver.getInt("faculty_id"),
+                            auditorsfromuniver.getInt("chair_id"),
+                            auditorsfromuniver.getInt("building_id"),
+                            auditorsfromuniver.getInt("audience_type_id"),
+                            auditorsfromuniver.getInt("audience_floor"),
+                            auditorsfromuniver.getInt("audience_size"),
+                            auditorsfromuniver.getString("audience_number_ru")
+                    );
+                }
             }
 
             int n = 0, n_t = 0;
@@ -87,8 +101,7 @@ public class app {
                 int auditor_id = groups.getInt("audience_id");
                 if (Arrays.asList(subject_id).contains(456)){
                     status = 2;
-                    auditor_id = 429;
-                    System.out.println(groups.getArray("group_id"));
+                    auditor_id = 429;;
                 }
                 if (groups.getInt("audience_id") != 0) {
                     status = 2;

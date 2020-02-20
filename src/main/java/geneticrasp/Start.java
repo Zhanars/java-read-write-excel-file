@@ -438,7 +438,7 @@ public class Start {
         int result = 0, count = 0, count1 = 0, count2 = 0, count3 = 0;
         Map<Integer, Integer> arr = new HashMap<>(), arr1 = new HashMap<>(), arr2 = new HashMap<>(), arr3 = new HashMap<>();
         rand = new Random();
-        for(int i = 0; i < auditors.length; i++){
+        for(int i = 0; i < auditors.length - 1; i++){
             if (geneticPerson.status % 7 != 0) {
                 if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
                         (geneticPerson.faculty_id == auditors[i].faculty_id) &&
@@ -486,7 +486,7 @@ public class Start {
     }
     private int getAuditorCount(GeneticPerson geneticPerson) {
         int result = 0, count = 0, count1 = 0, count2 = 0, count3 = 0;
-        for(int i = 0; i < auditors.length; i++){
+        for(int i = 0; i < auditors.length - 1; i++){
             if (geneticPerson.status % 7 != 0) {
                 if ((getaudiencetypeidchild(geneticPerson) == auditors[i].audience_type_id) &&
                         (geneticPerson.faculty_id == auditors[i].faculty_id) &&
