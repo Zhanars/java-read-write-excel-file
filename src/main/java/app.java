@@ -33,10 +33,10 @@ public class app {
             ResultSet timesfromuniver1 = stmt.executeQuery(SQL);
             int count = getRScount(timesfromuniver1);
             int i = 0;
-            String[] times = new String[count];
+            Integer[] times = new Integer[count];
             ResultSet timesfromuniver = stmt.executeQuery(SQL);
             while (timesfromuniver.next()) {
-                times[i] = timesfromuniver.getString("schedule_time_id");
+                times[i] = timesfromuniver.getInt("schedule_time_id");
                 i++;
             }
 
@@ -84,8 +84,14 @@ public class app {
                 buf1 = groups.getArray("time_id");
                 Integer[] bind_times = (Integer[])buf1.getArray();
                 int status = (groups.getInt("status") == -1) ? 7 : 1;
+                int auditor_id = groups.getInt("audience_id");
+                if (Arrays.asList(subject_id).contains(456)){
+                    status = 2;
+                    auditor_id = 429;
+                    System.out.println(groups.getArray("group_id"));
+                }
                 if (groups.getInt("audience_id") != 0) {
-                    status *= 2;
+                    status = 2;
                 }
                 if (groups.getInt("day_of_week_id") != 0) {
                     status *= 3;
@@ -93,16 +99,17 @@ public class app {
                 if (bind_times.length > 0) {
                     status *= 5;
                 } else {
-                    bind_times = new Integer[]{0};
+                    bind_times = new Integer[]{-1};
                 }
-                int aud_id = 0;
+                int aud_id = -1;
                 for(int l = 0; l < auditors.length; l++){
-                    if (auditors[l].audience_id == groups.getInt("audience_id")){
+                    if (auditors[l].audience_id == auditor_id){
                         aud_id = l;
                         break;
                     }
                 }
                 for(int time_id : bind_times) {
+                    int index = Arrays.asList(timesfromuniver).indexOf(time_id);
                     persons[n] = new GeneticPerson(
                             group_id,
                             subject_id,
@@ -113,7 +120,7 @@ public class app {
                             groups.getInt("students_count"),
                             groups.getInt("hours_educ"),
                             aud_id,
-                            time_id,
+                            index,
                             groups.getInt("day_of_week_id"),
                             status,
                             students_arr

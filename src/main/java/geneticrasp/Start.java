@@ -12,7 +12,7 @@ import java.util.*;
 public class Start {
     //критерии
     private GeneticRooms[] auditors;
-    private String[] time_id;
+    private Integer[] time_id;
     private String[] day_of_week_id;
     private int[][] roomsCount;
     private int[][] groupsCount;
@@ -28,10 +28,11 @@ public class Start {
 
     private int timeMax = 1000000000;
 
-    public Start(GeneticPerson[] groups, int[] teachers, String[] timesfromuniver, GeneticRooms[] auditorsfromuniver,
+    public Start(GeneticPerson[] groups, int[] teachers, Integer[] timesfromuniver, GeneticRooms[] auditorsfromuniver,
                  int[][] roomsCount, int[][] groupsCount, int[][] roomsChairCount, int[][] groupsChairCount){
         this.time_id = timesfromuniver;
         this.day_of_week_id = new String []{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+        System.out.println(day_of_week_id.length);
         this.persons = groups;
         this.roomsCount = roomsCount;
         this.groupsCount = groupsCount;
@@ -43,13 +44,13 @@ public class Start {
         System.out.println(persons.length);
         for (int j = 0; j < persons.length; j++){
             //заполняем случайными значениямии
-            if (persons[j].audience_id == 0) {
+            if (persons[j].status % 2 > 0) {
                 persons[j].audience_id = getauditorforgroup(persons[j]);
             }
-            if (persons[j].time_id == 0) {
+            if (persons[j].status % 3 > 0) {
                 persons[j].time_id = rand.nextInt(time_id.length);
             }
-            if (persons[j].day_of_week_id == 0) {
+            if (persons[j].status % 5 > 0) {
                 persons[j].day_of_week_id = rand.nextInt(day_of_week_id.length);
             }
         }
@@ -150,7 +151,7 @@ public class Start {
                 }
 
                 //если есть особь с идеальным здоровьем, заканчиваем
-                if ((personFitness.get(i) == 0) || (timebuff == 10)) {
+                if ((personFitness.get(i) == 0)) {
                     answer = personsList.get(i);
                     break;
                 }
@@ -204,7 +205,7 @@ public class Start {
                 //создаем ребенка
                 GeneticPerson[] child = new GeneticPerson[persons.length];
                 //заполняем его гены
-                if (rand.nextInt(2) == 0) {
+                if (rand.nextInt(10) == 0) {
                     if (rand.nextInt(2) == 0){
                         child = makeNewPop(par1);
                     } else {
@@ -219,7 +220,7 @@ public class Start {
                             child[j] = par2[j].clone();
                         }
                         //мутация
-                        if (rand.nextInt(5) == 0) {
+                        if (rand.nextInt(2) == 0) {
                             int ba, bt, bd;
                             if (persons[j].status % 2 == 0 ){
                                 ba = persons[j].audience_id;
@@ -264,9 +265,6 @@ public class Start {
         for (int i = 0; i < personColors.length - 1; i++) {
             //проверяем всех соседей
             for (int j = i + 1; j < personColors.length; j++) {
-                if (i == j) {
-                    continue;
-                }
                 if (personColors[i].time_id == personColors[j].time_id && personColors[i].day_of_week_id == personColors[j].day_of_week_id) {
                     //если совпадают
                     if (personColors[i].status % 2 == 0){
@@ -275,13 +273,16 @@ public class Start {
                     if (checkIntersection(personColors[i].teacher_id, personColors[j].teacher_id)) {
                         result += 10; //уменьшаем здоровье
                     }
-                    //если совпадают
 
-                    if (personColors[i].audience_id == personColors[j].audience_id) {
-                        result += 10; //уменьшаем здоровье
-                    }
                     //если совпадают
                     if (checkIntersection(personColors[i].students, personColors[j].students)) {
+                        result += 10; //уменьшаем здоровье
+                    }
+                    if (personColors[i].audience_id == 429 || personColors[j].audience_id == 429){
+                        continue;
+                    }
+                    //если совпадают
+                    if (personColors[i].audience_id == personColors[j].audience_id) {
                         result += 10; //уменьшаем здоровье
                     }
                 }
@@ -630,12 +631,12 @@ public class Start {
     private GeneticPerson[] makeNewPop(GeneticPerson[] personColors) {
         GeneticPerson[] result; //начальное здоровье
         //проходим по всем вершинам графа
-        for (int i = 0; i < personColors.length; i++) {
+        for (int i = 0; i < personColors.length - 1; i++) {
             //проверяем всех соседей
             for (int j = i + 1; j < personColors.length; j++) {
                 if (personColors[i].time_id == personColors[j].time_id && personColors[i].day_of_week_id == personColors[j].day_of_week_id) {
                     //если совпадают
-                    if (personColors[i].audience_id == personColors[j].audience_id) {
+                    if (personColors[i].audience_id == personColors[j].audience_id && personColors[i].audience_id != 429) {
                         int result1;
                         switch (personColors[j].educ_type_id){
                             case 1:
@@ -671,16 +672,14 @@ public class Start {
                         if (personColors[j].status % 5 != 0){
                             personColors[j].time_id = rand.nextInt(time_id.length);
                         }
+                    } else if (checkIntersection(personColors[i].teacher_id, personColors[j].teacher_id)){
+                        personColors[j].time_id = rand.nextInt(time_id.length);
+                        personColors[j].day_of_week_id = rand.nextInt(day_of_week_id.length);
+                    } else if (checkIntersection(personColors[i].students, personColors[j].students)){
+                        personColors[j].time_id = rand.nextInt(time_id.length);
+                        personColors[j].day_of_week_id = rand.nextInt(day_of_week_id.length);
                     }
 
-                    if (checkIntersection(personColors[i].teacher_id, personColors[j].teacher_id)){
-                        personColors[j].time_id = rand.nextInt(time_id.length);
-                        personColors[j].day_of_week_id = rand.nextInt(day_of_week_id.length);
-                    }
-                    if (checkIntersection(personColors[i].students, personColors[j].students)){
-                        personColors[j].time_id = rand.nextInt(time_id.length);
-                        personColors[j].day_of_week_id = rand.nextInt(day_of_week_id.length);
-                    }
                 }
             }
         }
